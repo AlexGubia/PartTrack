@@ -36,7 +36,7 @@ class DBManager:
         cursor = self.conn.cursor()
         cursor.execute("""
             INSERT INTO componentes (nombre, tipo, valor, encapsulado, cantidad, ubicacion, fabricante, codigo_fabricante, descripcion, notas)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             componente.nombre,
             componente.tipo,

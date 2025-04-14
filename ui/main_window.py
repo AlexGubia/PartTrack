@@ -1,10 +1,9 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QDialog
 from PyQt6.QtCore import Qt
 from database.db_manager import DBManager
 from models.componente import Componente
 from ui.add_component_dialog import AddComponentDialog
-
-
+from ui.diff_dialog import ConfirmacionCambioDialog
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -17,6 +16,7 @@ class MainWindow(QWidget):
         
         # Avoiding lazy initialization of componentes variables
         self.componentes = []
+        self.valor_anterior = ""
 
         self.boton_recargar = QPushButton("Recargar inventario")
         self.boton_recargar.clicked.connect(self.cargar_componentes)
@@ -27,7 +27,6 @@ class MainWindow(QWidget):
         self.tabla = QTableWidget()
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.DoubleClicked | QTableWidget.EditTrigger.SelectedClicked)
 
-
         self.layout.addWidget(self.boton_recargar)
         self.layout.addWidget(self.tabla)
         self.layout.addWidget(self.boton_agregar)
@@ -37,6 +36,7 @@ class MainWindow(QWidget):
 
         # We are adding connections here
         self.tabla.cellChanged.connect(self.actualizar_celda)
+        self.tabla.cellClicked.connect(self.guardar_valor_original)
 
     def abrir_formulario(self):
         dialogo = AddComponentDialog()
@@ -49,21 +49,43 @@ class MainWindow(QWidget):
                 QMessageBox.warning(self, "Faltan datos",
                                     "El campo 'Nombre' es obligatorio.")
 
+
+    def guardar_valor_original(self, fila: int, columna: int):
+        item = self.tabla.item(fila, columna)
+        if item:
+            self.valor_anterior = item.text()
+            self.coordinates = (fila, columna)
+        else:
+            self.valor_anterior = None
+            self.coordinates = None
+
     def actualizar_celda(self, fila: int, columna: int):
-        if fila >= len(self.componentes):
+        # Is this the correct condition?
+        if fila > len(self.componentes):
             return
 
+        # Is this the same cell that was clicked?
+        if self.coordinates != (fila, columna):
+            return
+        
         componente = self.componentes[fila]
         nuevo_valor = self.tabla.item(fila, columna).text()
+
+        if nuevo_valor == self.valor_anterior:
+            return  # Nada cambió
+
+        # Mostrar confirmación visual con diferencias
+        dialogo = ConfirmacionCambioDialog(self.valor_anterior, nuevo_valor)
+        if dialogo.exec() != QDialog.DialogCode.Accepted:
+            self.cargar_componentes()
+            return
 
         campos = [
             "id", "nombre", "tipo", "valor", "encapsulado", "cantidad",
             "ubicacion", "fabricante", "codigo_fabricante", "descripcion", "notas"
         ]
-
         campo_modificado = campos[columna]
 
-        # Validación opcional para cantidad
         if campo_modificado == "cantidad":
             try:
                 nuevo_valor = int(nuevo_valor)
@@ -73,25 +95,21 @@ class MainWindow(QWidget):
                 self.cargar_componentes()
                 return
 
-        # Actualizar el valor en el objeto
         setattr(componente, campo_modificado, nuevo_valor)
-
-        # Actualizar en base de datos
         self.db.actualizar_componente(componente)
 
     def cargar_componentes(self):
-        componentes = self.db.obtener_componentes()
-        self.tabla.setRowCount(len(componentes))
-        self.tabla.setColumnCount(10)
+        self.coordinates = None
+        self.valor_anterior = None
+        self.componentes = self.db.obtener_componentes()
+        self.tabla.setRowCount(len(self.componentes))
+        self.tabla.setColumnCount(11)
         self.tabla.setHorizontalHeaderLabels([
             "ID", "Nombre", "Tipo", "Valor", "Encapsulado",
             "Cantidad", "Ubicación", "Fabricante", "Código Fab.", "Descripción", "Notas"
         ])
 
-        # Customization of columns
-        
-
-        for i, c in enumerate(componentes):
+        for i, c in enumerate(self.componentes):
             item_id = QTableWidgetItem(str(c.id))
             item_id.setFlags(item_id.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.tabla.setItem(i, 0, item_id)

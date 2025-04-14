@@ -43,6 +43,8 @@ class AddComponentDialog(QDialog):
         except ValueError:
             cantidad = 0
 
+        
+
         return Componente(
             nombre=self.inputs["nombre"].text(),
             tipo=self.inputs["tipo"].text(),
@@ -51,7 +53,7 @@ class AddComponentDialog(QDialog):
             cantidad=cantidad,
             ubicacion=self.inputs["ubicacion"].text(),
             fabricante=self.inputs["fabricante"].text(),
-            codigo_fabricante=codigo_fab,
+            codigo_fabricante=self.inputs["codigo_fabricante"].text(),
             descripcion=self.inputs["descripcion"].text(),
             notas=self.inputs["notas"].text()
         )
