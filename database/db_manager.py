@@ -6,6 +6,12 @@ class DBManager:
     def __init__(self, db_path='data/inventario.db'):
         self.conn = sqlite3.connect(db_path)
         self.create_table()
+        
+    def close(self):
+        # Another component might have closen the connection already
+        if self.conn:
+            self.conn.close()
+            self.conn = None
 
     def create_table(self):
         query = """

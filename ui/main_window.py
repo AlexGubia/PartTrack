@@ -6,12 +6,12 @@ from ui.add_component_dialog import AddComponentDialog
 from ui.diff_dialog import ConfirmacionCambioDialog
 
 class MainWindow(QWidget):
-    def __init__(self):
+    def __init__(self, db: DBManager):
         super().__init__()
         self.setWindowTitle("Inventario Electrónico")
         self.resize(1000, 600)
 
-        self.db = DBManager()
+        self.db = db
         self.layout = QVBoxLayout()
         
         # Avoiding lazy initialization of componentes variables
@@ -123,3 +123,8 @@ class MainWindow(QWidget):
             self.tabla.setItem(i, 8, QTableWidgetItem(c.codigo_fabricante))
             self.tabla.setItem(i, 8, QTableWidgetItem(c.descripcion))
             self.tabla.setItem(i, 9, QTableWidgetItem(c.notas))
+            
+    def closeEvent(self, event):
+        if hasattr(self, "db") and self.db:
+            self.db.close()
+        event.accept()
