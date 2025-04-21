@@ -12,8 +12,8 @@
 ## 📤 Entrada / salida de datos
 - [ ] Importar desde CSV
 - [ ] Importar desde Excel
-- [ ] Exportar a CSV
-- [ ] Exportar a Excel
+- [x] Exportar a CSV
+- [x] Exportar a Excel
 - [ ] Exportar a JSON
 - [ ] Exportar inventario a PDF
 - [ ] Copia de seguridad automática del archivo SQLite

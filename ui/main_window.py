@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
 from database.db_manager import DBManager
 from database.export_csv import export_components_to_csv
+from database.export_excel import export_components_to_excel
 from models.componente import Componente
 from ui.add_component_dialog import AddComponentDialog
 from ui.diff_dialog import ConfirmacionCambioDialog
@@ -23,6 +24,10 @@ class MainWindow(QMainWindow):
         action_export_csv = QAction("Export CSV", self)
         action_export_csv.triggered.connect(self.export_to_csv)
         file_menu.addAction(action_export_csv)
+        
+        action_export_excel = QAction("Export Excel (.xlsx)", self)
+        action_export_excel.triggered.connect(self.export_to_excel)
+        file_menu.addAction(action_export_excel)
 
         central_widget = QWidget()
         self.layout = QVBoxLayout(central_widget)
@@ -155,3 +160,17 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Export Failed",
                                      f"An error occurred:\n{str(e)}")
+
+    def export_to_excel(self):
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, "Exportar como Excel", "", "Archivos Excel (*.xlsx)"
+        )
+        if file_path:
+            
+            try:
+                export_components_to_excel(self.componentes, file_path)
+                QMessageBox.information(
+                                    self, "Export Successful", f"Components exported to:\n{file_path}")
+            except Exception as e:
+                QMessageBox.critical(self, "Export Failed",
+                                    f"An error occurred:\n{str(e)}")

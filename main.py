@@ -7,6 +7,8 @@ from database.db_manager import DBManager
 
 def main():
     app = QApplication(sys.argv)
+    app.setStyle('windowsvista')
+
     db = DBManager(db_path='data/inventario.db')
     ventana = MainWindow(db)
 
